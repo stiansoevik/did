@@ -5,7 +5,7 @@ class IndexComparator():
     class Change():
         EXCLUDED = "Excluded"
         IDENTICAL = "Identical"
-        MODIFIED = "Modified"
+        CHANGED = "Changed"
         MOVED = "Moved"
         DELETED = "Deleted"
         ADDED = "Added"
@@ -38,7 +38,7 @@ class IndexComparator():
                 if a_file.is_same_contents(b_name_match):
                     self.add_change(a_file, b_name_match, IndexComparator.Change.IDENTICAL)
                 else:
-                    self.add_change(a_file, b_name_match, IndexComparator.Change.MODIFIED)
+                    self.add_change(a_file, b_name_match, IndexComparator.Change.CHANGED)
 
         self.logger.info("Matching files with identical content")
         for a_file in self.a.get_unmatched_files():
@@ -64,16 +64,18 @@ class IndexComparator():
         if new is not None:
             new.matched = True
 
-    def print_changes(self, show_identical = False, show_moved = True):
-        show_changes = [
-            IndexComparator.Change.ADDED,
-            IndexComparator.Change.MODIFIED,
-            IndexComparator.Change.DELETED
-        ]
+    def print_changes(self, show_identical, show_moved, show_added, show_changed, show_deleted):
+        show_changes = []
         if show_identical:
-            show_changes.insert(0, IndexComparator.Change.IDENTICAL)
+            show_changes.append(IndexComparator.Change.IDENTICAL)
         if show_moved:
-            show_changes.insert(0, IndexComparator.Change.MOVED)
+            show_changes.append(IndexComparator.Change.MOVED)
+        if show_added:
+            show_changes.append(IndexComparator.Change.ADDED)
+        if show_changed:
+            show_changes.append(IndexComparator.Change.CHANGED)
+        if show_deleted:
+            show_changes.append(IndexComparator.Change.DELETED)
 
         for change in show_changes:
             for c in [c for c in self.changes if c["change"] == change]:

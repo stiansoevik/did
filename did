@@ -37,7 +37,19 @@ def compare(args):
     logger.info("To  : {}".format(indexes[1]))
 
     comparator.compare()
-    comparator.print_changes(show_identical = args.show_identical, show_moved = not args.hide_moved)
+
+    show_args = {
+        "show_identical": args.show_identical,
+        "show_moved":     args.show_moved,
+        "show_added":     args.show_added,
+        "show_changed":   args.show_changed,
+        "show_deleted":   args.show_deleted,
+    }
+    if not any([arg for arg in show_args.values()]):
+        show_args["show_changed"] = True
+        show_args["show_deleted"] = True
+        show_args["show_added"] = True
+    comparator.print_changes(**show_args)
 
 def index(args):
     if not os.path.isdir(args.directory):
@@ -63,7 +75,10 @@ def execute_command_line():
     parser_compare.add_argument("first", help = "First directory or index file")
     parser_compare.add_argument("second", help = "Second directory or index file")
     parser_compare.add_argument("-i", "--show-identical", action = "store_true", help = "Show identical files")
-    parser_compare.add_argument("-c", "--hide-moved", action = "store_true", help = "Hide moved files")
+    parser_compare.add_argument("-m", "--show-moved", action = "store_true", help = "Show moved files")
+    parser_compare.add_argument("-c", "--show-changed", action = "store_true", help = "Show changed files")
+    parser_compare.add_argument("-d", "--show-deleted", action = "store_true", help = "Show deleted files")
+    parser_compare.add_argument("-a", "--show-added", action = "store_true", help = "Show added files")
     parser_compare.set_defaults(func = compare)
 
     parser_index = subparsers.add_parser("index", help = "Index directory and save to file")
