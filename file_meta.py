@@ -57,7 +57,7 @@ class FileMeta():
             self.hash = get_hash(full_filepath)
             self.mtime = os.path.getmtime(full_filepath)
             self.size = os.path.getsize(full_filepath)
-        except OSError as e:
+        except IOError as e:
             self.error = repr(e)
 
     def is_same_contents(self, did_file):
