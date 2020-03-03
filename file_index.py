@@ -21,6 +21,10 @@ class FileIndex():
         return str(self.meta)
 
     def add_file(self, file_meta):
+        if file_meta.error is not None:
+            self.logger.warning("Error adding {} to index: {}".format(file_meta.filepath, file_meta.error))
+            return
+
         self.logger.debug("Added {} to index".format(file_meta))
         self.file_index[file_meta.filepath] = file_meta
 
