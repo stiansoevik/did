@@ -4,6 +4,7 @@ import file_index
 import index_comparator
 import logging
 import os
+import sys
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +72,7 @@ def execute_command_line():
     base_subparser.add_argument("--exclude", action = "append", help = "Glob for files to exclude. Can be specified multiple times.")
     base_subparser.add_argument("-v", "--verbose", action = "count", help = "Log INFO messages if specified once. Log DEBUG messages if specified twice.")
 
-    subparsers = parser.add_subparsers(help = "Sub-command help")
+    subparsers = parser.add_subparsers()
 
     parser_compare = subparsers.add_parser("compare", help = "Compare two directories", parents=[base_subparser])
     parser_compare.add_argument("first", help = "First directory or index file")
@@ -91,6 +92,10 @@ def execute_command_line():
     parser_index.set_defaults(func = index)
 
     args = parser.parse_args()
+
+    if len(sys.argv) == 1:
+        parser.print_help()
+        parser.exit()
 
     if args.verbose is None:
         logging.basicConfig(level = logging.WARNING)

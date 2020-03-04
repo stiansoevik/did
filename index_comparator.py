@@ -80,4 +80,3 @@ class IndexComparator():
         for change in show_changes:
             for c in [c for c in self.changes if c["change"] == change]:
                 print("{}: {} -> {}".format(c["change"], c["old"], c["new"]))
-
