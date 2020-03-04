@@ -66,12 +66,14 @@ def index(args):
 
 def execute_command_line():
     parser = argparse.ArgumentParser(description = "directory diff - compare changes in files between two directories")
-    parser.add_argument("--exclude", action = "append", help = "Glob for files to exclude. Can be specified multiple times.")
-    parser.add_argument("-v", "--verbose", action = "count", help = "Log INFO messages if specified once. Log DEBUG messages if specified twice.")
+
+    base_subparser = argparse.ArgumentParser(add_help = False)
+    base_subparser.add_argument("--exclude", action = "append", help = "Glob for files to exclude. Can be specified multiple times.")
+    base_subparser.add_argument("-v", "--verbose", action = "count", help = "Log INFO messages if specified once. Log DEBUG messages if specified twice.")
 
     subparsers = parser.add_subparsers(help = "Sub-command help")
 
-    parser_compare = subparsers.add_parser("compare", help = "Compare two directories")
+    parser_compare = subparsers.add_parser("compare", help = "Compare two directories", parents=[base_subparser])
     parser_compare.add_argument("first", help = "First directory or index file")
     parser_compare.add_argument("second", help = "Second directory or index file")
     parser_compare.add_argument("-i", "--show-identical", action = "store_true", help = "Show identical files")
@@ -81,7 +83,7 @@ def execute_command_line():
     parser_compare.add_argument("-a", "--show-added", action = "store_true", help = "Show added files")
     parser_compare.set_defaults(func = compare)
 
-    parser_index = subparsers.add_parser("index", help = "Index directory and save to file")
+    parser_index = subparsers.add_parser("index", help = "Index directory and save to file", parents=[base_subparser])
     parser_index.add_argument("directory", help = "Directory to index")
     parser_index.add_argument("index_file", nargs = "?", default = "index.did", help = "File to store index in")
     parser_index.add_argument("-f", "--force", action = "store_true", help = "Force overwriting of existing index file")
