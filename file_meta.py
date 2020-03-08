@@ -1,6 +1,8 @@
 import hashlib
 import os
 
+BLOCKSIZE = 8192
+
 class FileMeta():
     def __init__(self, rootdir = None, filepath = None, meta = None):
         self.matched = False
@@ -46,7 +48,11 @@ class FileMeta():
         def get_hash(filepath):
             hash = hashlib.sha1()
             with open(filepath, "rb") as f:
-                hash.update(f.read())
+                while True:
+                    buf = f.read(BLOCKSIZE)
+                    if not buf:
+                        break
+                    hash.update(buf)
             return hash.hexdigest()
 
         full_filepath = os.path.join(rootdir, filepath)
