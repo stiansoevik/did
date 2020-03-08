@@ -9,6 +9,7 @@ class FileIndex():
         self.file_index = {}
         self.hash_index = {}
         self.name = name
+        self.meta = None
 
         if name is not None:
             self.logger = logging.getLogger("{} [{}]".format(__name__, name))
@@ -86,10 +87,24 @@ class FileIndex():
                 self.logger.debug("Longest name match for {}: {}".format(did_file, longest_matching_candidate))
                 return longest_matching_candidate
 
+    def add_path(self, path):
+        # Returns True if did index, False if directory, raises exception if invalid
+        def is_index(path):
+            if os.path.isdir(path):
+                return False
+            if not os.path.isfile(path):
+                raise IOError("{} does not exist".format(path))
+            return True
+
+        if is_index(path):
+            self.load(path)
+        else:
+            self.scan_dir(path)
 
     def scan_dir(self, scan_path, message = None):
-        self.meta = index_meta.IndexMeta()
-        self.meta.generate(scan_path, message) # TODO In initializer?
+        if self.meta is None:
+            self.meta = index_meta.IndexMeta()
+            self.meta.generate(scan_path, message) # TODO In initializer?
 
         scan_path_length = len(os.path.normpath(scan_path)) + 1
         for dirpath, dirnames, filenames in os.walk(scan_path):
@@ -107,8 +122,13 @@ class FileIndex():
     def load(self, index_file_name):
         self.logger.debug("Loading index from {}".format(index_file_name))
         with open(index_file_name, "r") as f:
-            self.meta = index_meta.IndexMeta()
-            self.meta.load(json.loads(f.readline()), index_file_name)
+            meta = index_meta.IndexMeta()
+            meta.load(json.loads(f.readline()), index_file_name)
+            self.logger.debug("Loaded {}".format(meta))
+            if self.meta is None:
+                self.meta = meta
+            else:
+                f.readline() # Throw away meta
             for line in f:
                 file_dict = json.loads(line)
                 self.add_file(file_meta.FileMeta(meta = file_dict))

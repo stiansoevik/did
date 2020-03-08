@@ -10,32 +10,21 @@ logger = logging.getLogger(__name__)
 
 # Check arguments and try to load indexes first, so errors can fail fast
 def compare(args):
-    # Returns True if did index, False if directory, raises exception if invalid
-    def is_did_index(path):
-        if os.path.isdir(path):
-            return False
-        if not os.path.isfile(path):
-            raise IOError("{} does not exist".format(path))
-        return True
+    from_paths = [args.from_path] + args.extra_from_paths
+    to_paths = [args.to_path] + args.extra_to_paths
 
-    paths = [args.first, args.second]
+    from_index = file_index.FileIndex("from")
+    to_index = file_index.FileIndex("to")
 
-    is_did_index = [is_did_index(p) for p in paths]
+    for path in from_paths:
+        from_index.add_path(path)
+    for path in to_paths:
+        to_index.add_path(path)
 
-    indexes = [file_index.FileIndex("old"), file_index.FileIndex("new")]
-    comparator = index_comparator.IndexComparator(*indexes, excludes = args.exclude)
+    comparator = index_comparator.IndexComparator(from_index, to_index, args.exclude)
 
-    for i, index in enumerate(indexes):
-        if is_did_index[i]:
-            index.load(paths[i])
-
-    for i, index in enumerate(indexes):
-        if not is_did_index[i]:
-            index.scan_dir(paths[i])
-
-    logger.info("Comparing changes from {} to {}".format(*paths))
-    logger.info("From: {}".format(indexes[0]))
-    logger.info("To  : {}".format(indexes[1]))
+    logger.info("From: {}".format(from_index))
+    logger.info("To  : {}".format(to_index))
 
     comparator.compare()
 
@@ -75,8 +64,10 @@ def execute_command_line():
     subparsers = parser.add_subparsers()
 
     parser_compare = subparsers.add_parser("compare", help = "Compare two directories", parents=[base_subparser])
-    parser_compare.add_argument("first", help = "First directory or index file")
-    parser_compare.add_argument("second", help = "Second directory or index file")
+    parser_compare.add_argument("from_path", help = "Directory or index to compare changes from")
+    parser_compare.add_argument("to_path", help = "Directory or index to compare changes to")
+    parser_compare.add_argument("--extra-from-paths", nargs = "+", default = [], help = "Extra directories or indexes to compare changes from")
+    parser_compare.add_argument("--extra-to-paths", nargs = "+", default = [], help = "Extra directories or indexes to compare changes to")
     parser_compare.add_argument("-i", "--show-identical", action = "store_true", help = "Show identical files")
     parser_compare.add_argument("-m", "--show-moved", action = "store_true", help = "Show moved files")
     parser_compare.add_argument("-c", "--show-changed", action = "store_true", help = "Show changed files")
@@ -88,7 +79,7 @@ def execute_command_line():
     parser_index.add_argument("directory", help = "Directory to index")
     parser_index.add_argument("index_file", nargs = "?", default = "index.did", help = "File to store index in")
     parser_index.add_argument("-f", "--force", action = "store_true", help = "Force overwriting of existing index file")
-    parser_index.add_argument("-m", "--message", nargs="+", help = "Message to be stored in index file")
+    parser_index.add_argument("-m", "--message", nargs = "+", help = "Message to be stored in index file")
     parser_index.set_defaults(func = index)
 
     args = parser.parse_args()
