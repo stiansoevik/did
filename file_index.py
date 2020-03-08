@@ -51,6 +51,7 @@ class FileIndex():
     # TODO Can FileMeta have match_name([list]) and match_content([list]) instead?
     def get_best_content_match(self, did_file):
         candidates = [c for c in self.hash_index.get(did_file.hash, []) if c.matched == False]
+        self.logger.debug("Content match candidates for {}: {}".format(did_file, ", ".join(map(str, candidates))))
         if len(candidates) == 0:
             self.logger.debug("No content match for {}".format(did_file))
             return None
@@ -66,17 +67,25 @@ class FileIndex():
                 return mtime_candidates[0]
             else:
                 # TODO Is best match when file name and end of path matches, or only end of path? (moved vs renamed file)
-                match_length = 1
-                name_candidates = candidates
-                while match_length < len(did_file._filepath_list): # TODO Expose or match in class
-                    matching_candidates = [c for c in name_candidates if c._filepath_list[-match_length] == did_file._filepath_list[-match_length]]
-                    if len(matching_candidates) > 0:
-                        name_candidates = matching_candidates
-                        match_length = match_length + 1
-                    else:
-                        break
-                self.logger.debug("Longest name match for {} of {}".format(did_file, ", ".join(map(str, candidates))))
-                return name_candidates[0]
+                def match_length(a, b):
+                    matching_length = 0
+                    while True:
+                        next_check_pos = matching_length + 1
+                        if matching_length == len(a) or matching_length == len(b):
+                            return matching_length
+                        if (a[-next_check_pos] == b[-next_check_pos]):
+                            matching_length = next_check_pos
+                        else:
+                            return matching_length
+
+                longest_matching_candidate = candidates[0] # Must choose one as default
+                longest_matching_length = match_length(longest_matching_candidate._filepath_list, did_file._filepath_list)
+                for c in candidates:
+                   if match_length(c._filepath_list, did_file._filepath_list) > longest_matching_length:
+                       longest_matching_candidate = c
+                self.logger.debug("Longest name match for {}: {}".format(did_file, longest_matching_candidate))
+                return longest_matching_candidate
+
 
     def scan_dir(self, scan_path, message = None):
         self.meta = index_meta.IndexMeta()
