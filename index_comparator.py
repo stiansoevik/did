@@ -1,6 +1,6 @@
+import enum
 import fnmatch
 import logging
-
 
 class IndexComparator():
     def __init__(self, a, b, excludes = None):
@@ -39,11 +39,17 @@ class IndexComparator():
             if b_content_match is not None:
                 self.changes.add(a_file, b_content_match, Change.Type.MOVED)
             else:
-                self.changes.add(a_file, None, Change.Type.DELETED)
+                if self.b.has_file_matching_content(a_file):
+                    self.changes.add(a_file, None, Change.Type.DEDUPLICATED)
+                else:
+                    self.changes.add(a_file, None, Change.Type.DELETED)
 
         self.logger.info("Adding remaining files")
         for b_file in self.b.get_unmatched_files():
-            self.changes.add(None, b_file, Change.Type.ADDED)
+            if self.a.has_file_matching_content(b_file):
+                self.changes.add(None, b_file, Change.Type.DUPLICATED)
+            else:
+                self.changes.add(None, b_file, Change.Type.ADDED)
 
         # Check that we got through all files
         assert(len([f for f in self.a.get_unmatched_files()]) == 0)
@@ -52,20 +58,7 @@ class IndexComparator():
         self.logger.debug("Sorting results")
         self.changes.sort()
 
-    def print_changes(self, show_identical, show_moved, show_added, show_changed, show_deleted):
-        # TODO Maybe pass list of types directly as parameters
-        show_changes = []
-        if show_identical:
-            show_changes.append(Change.Type.IDENTICAL)
-        if show_moved:
-            show_changes.append(Change.Type.MOVED)
-        if show_added:
-            show_changes.append(Change.Type.ADDED)
-        if show_changed:
-            show_changes.append(Change.Type.CHANGED)
-        if show_deleted:
-            show_changes.append(Change.Type.DELETED)
-
+    def print_changes(self, show_changes):
         self.changes.print(show_changes)
 
 class Changes():
@@ -81,19 +74,22 @@ class Changes():
         for changes in self.changes.values():
             changes.sort()
 
-    def print(self, change_types):
-        for change_type in change_types:
-            for change in self.changes[change_type]:
-                print(change)
+    def print(self, show_changes):
+        for change_type in Change.Type:
+            if show_changes is None or change_type in show_changes:
+                for change in self.changes[change_type]:
+                    print(change)
 
 class Change():
-    class Type():
+    class Type(enum.Enum):
         EXCLUDED = "Excluded"
         IDENTICAL = "Identical"
         CHANGED = "Changed"
         MOVED = "Moved"
         DELETED = "Deleted"
         ADDED = "Added"
+        DUPLICATED = "Duplicated"
+        DEDUPLICATED = "Deduplicated"
 
     def __init__(self, old, new, change_type):
         if old is not None:
@@ -106,7 +102,7 @@ class Change():
         self.change_type = change_type
 
     def __str__(self):
-        return "{}: {} -> {}".format(self.change_type, self.old, self.new)
+        return "{}: {} -> {}".format(self.change_type.value, self.old, self.new)
 
     def __lt__(a, b):
         if a.old is not None and b.old is not None:

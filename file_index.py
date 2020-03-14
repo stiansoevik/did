@@ -49,6 +49,9 @@ class FileIndex():
             self.logger.debug("No exact name match for {}".format(did_file))
             return None
 
+    def has_file_matching_content(self, did_file):
+        return did_file.hash in self.hash_index
+
     # TODO Can FileMeta have match_name([list]) and match_content([list]) instead?
     def get_best_content_match(self, did_file):
         candidates = [c for c in self.hash_index.get(did_file.hash, []) if c.matched == False]
