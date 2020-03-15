@@ -87,16 +87,16 @@ To do
 `did` is in an early development stage. Pull requests welcome.
 
 Some ideas for future improvements:
-- Store statistics in index (number of files, total size)?
-- Display summary after indexing and comparing
-- Exception handling when reading files during indexing. Retry? Store as failed?
-- Update index based on changed mtime
-- Package for pip or similar?
-- Support non Unix path separators?
-- Similarity index?
-- Improve parameters. It should be possible to specify them in any order.
-- Improve help text
-- Support fnmatch --exclude parameters for indexing
-- Optionally, group renamed directories (so that instead of printing each file, print dir)
-- Display new duplicates (all that are left in b after best match, still matching an existing)
-- Support searching for duplicates in only one directory?
+- [ ] Store statistics in index (number of files, total size)?
+- [ ] Display summary after indexing and comparing
+- [X] Exception handling when reading files during indexing. Retry? Store as failed?
+- [ ] Update index based on changed mtime
+- [ ] Package for pip or similar?
+- [ ] Support non Unix path separators?
+- [ ] Similarity index?
+- [X] Improve parameters. It should be possible to specify them in any order.
+- [X] Improve help text
+- [ ] Support fnmatch --exclude parameters for indexing
+- [ ] Optionally, group renamed directories (so that instead of printing each file, print dir)
+- [X] Display new duplicates (all that are left in b after best match, still matching an existing)
+- [ ] Support searching for duplicates in only one directory?
