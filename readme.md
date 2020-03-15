@@ -12,6 +12,8 @@ Examples
 ========
 Output is truncated for readability. File names are random, and the files have been put in `old` and `new` directories with some changes done to `new`.
 
+:warning: Examples are not update. Use --help for syntax.
+
 Compare two directories on the fly
 ----------------------------------
 ```
