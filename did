@@ -28,7 +28,7 @@ def compare(args):
 
     comparator.compare()
 
-    comparator.print_changes(args.show_changes)
+    comparator.print_changes(args.show_changes, args.hide_change_type)
 
 def index(args):
     if not os.path.isdir(args.directory):
@@ -57,6 +57,7 @@ def execute_command_line():
     parser_compare.add_argument("to_path", help = "Directory or index to compare changes to")
     parser_compare.add_argument("--extra-from-paths", nargs = "+", default = [], help = "Extra directories or indexes to compare changes from")
     parser_compare.add_argument("--extra-to-paths", nargs = "+", default = [], help = "Extra directories or indexes to compare changes to")
+    parser_compare.add_argument("-n", "--hide-change-type", action = "store_true", help = "Hide change type, only list files")
 
     parser_compare.add_argument("-i", "--show-identical", const = index_comparator.Change.Type.IDENTICAL,
         action = "append_const", dest = "show_changes", help = "Show identical files")

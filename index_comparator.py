@@ -58,8 +58,8 @@ class IndexComparator():
         self.logger.debug("Sorting results")
         self.changes.sort()
 
-    def print_changes(self, show_changes):
-        self.changes.print(show_changes)
+    def print_changes(self, show_changes, hide_change_type = False):
+        self.changes.print(show_changes, hide_change_type)
 
 class Changes():
     def __init__(self):
@@ -74,11 +74,13 @@ class Changes():
         for changes in self.changes.values():
             changes.sort()
 
-    def print(self, show_changes):
+    def print(self, show_changes, hide_change_type):
         for change_type in Change.Type:
             if show_changes is None or change_type in show_changes:
                 for change in self.changes[change_type]:
-                    print(change)
+                    print_str = "" if hide_change_type else "{}: ".format(change.type)
+                    print_str += "{} -> {}".format(change.old_path, change.new_path)
+                    print(print_str)
 
 class Change():
     class Type(enum.Enum):
@@ -111,3 +113,15 @@ class Change():
             return a.new.filepath < b.new.filepath
         else:
             return True
+
+    @property
+    def type(self):
+        return self.change_type.value
+
+    @property
+    def old_path(self):
+        return self.old.filepath if self.old else None
+
+    @property
+    def new_path(self):
+        return self.new.filepath if self.new else None
