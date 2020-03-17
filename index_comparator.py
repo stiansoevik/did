@@ -77,7 +77,7 @@ class Changes():
     def print(self, show_changes, hide_change_type):
         for change_type in Change.Type:
             if show_changes is None or change_type in show_changes:
-                for change in self.changes[change_type]:
+                for change in self.changes.get(change_type, []):
                     print_str = "" if hide_change_type else "{}: ".format(change.type)
                     print_str += "{} -> {}".format(change.old_path, change.new_path)
                     print(print_str)
